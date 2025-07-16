@@ -34,7 +34,6 @@ const WorkInProgress = () => {
         setUser(session.user);
         setLoading(false);
       } catch (error) {
-        console.error('Error in getUser:', error);
         navigate('/login');
       }
     };
@@ -44,7 +43,6 @@ const WorkInProgress = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change in WorkInProgress:', event);
         if (!session) {
           navigate('/login');
         } else {

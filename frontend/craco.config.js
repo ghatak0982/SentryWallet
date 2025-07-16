@@ -30,5 +30,25 @@ module.exports = {
       return webpackConfig;
     },
   },
+  devServer: {
+    allowedHosts: 'all',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
+    },
+    client: {
+      overlay: false,
+      progress: false
+    },
+    hot: false,
+    liveReload: false,
+    historyApiFallback: {
+      disableDotRule: true,
+    },
+    static: {
+      publicPath: '/',
+    }
+  },
 };
   

@@ -34,19 +34,18 @@ const LoginPage = () => {
         }
 
         if (data.session) {
-          console.log('User authenticated:', data.session.user);
           // Clear the URL hash
           if (window.location.hash) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
-          navigate('/work-in-progress');
+          navigate('/dashboard');
           return;
         }
 
         // If no session from URL, check for stored session
         const { data: storedSession } = await supabase.auth.getSession();
         if (storedSession.session) {
-          navigate('/work-in-progress');
+          navigate('/dashboard');
         }
 
       } catch (error) {
@@ -59,17 +58,14 @@ const LoginPage = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
         if (event === 'SIGNED_IN' && session) {
           // Clear URL hash if present
           if (window.location.hash) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
-          navigate('/work-in-progress');
+          navigate('/dashboard');
         } else if (event === 'SIGNED_OUT') {
           // Handle sign out
-          console.log('User signed out');
         }
       }
     );
@@ -108,7 +104,7 @@ const LoginPage = () => {
         } else if (data.user) {
           if (data.user.email_confirmed_at) {
             // User is immediately confirmed
-            navigate('/work-in-progress');
+            navigate('/dashboard');
           } else {
             // User needs to confirm email
             setError('Please check your email for confirmation link');
@@ -124,7 +120,7 @@ const LoginPage = () => {
         if (error) {
           setError(error.message);
         } else if (data.user) {
-          navigate('/work-in-progress');
+          navigate('/dashboard');
         }
       }
     } catch (error) {
@@ -154,7 +150,6 @@ const LoginPage = () => {
       // Don't set loading to false here - let the auth state change handle it
     } catch (error) {
       setError('An unexpected error occurred with Google login');
-      console.error('Google auth error:', error);
       setLoading(false);
     }
   };

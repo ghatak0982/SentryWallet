@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -20,7 +20,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="SentryWallet API", version="1.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -34,6 +34,16 @@ class StatusCheck(BaseModel):
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+
+class HealthCheck(BaseModel):
+    status: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    service: str = "SentryWallet Backend"
+
+# Health check endpoint
+@api_router.get("/health", response_model=HealthCheck)
+async def health_check():
+    return HealthCheck(status="ok")
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
@@ -55,12 +65,19 @@ async def get_status_checks():
 # Include the router in the main app
 app.include_router(api_router)
 
+# Enhanced CORS configuration
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://973fb335-fd3d-4126-b372-80b883291d73.preview.emergentagent.com",
+        "https://*.preview.emergentagent.com",
+        "*"  # Allow all origins for development
+    ],
     allow_credentials=True,
-    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Configure logging
@@ -70,6 +87,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log startup information
+@app.on_event("startup")
+async def startup_event():
+    logger.info("SentryWallet Backend API starting up...")
+    logger.info(f"MongoDB URL: {mongo_url}")
+    logger.info("API endpoints available at /api/")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    logger.info("Shutting down SentryWallet Backend API...")
     client.close()
